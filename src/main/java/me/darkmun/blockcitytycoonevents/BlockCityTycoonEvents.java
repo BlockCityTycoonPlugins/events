@@ -31,12 +31,12 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
 
 
             if (!zeroIncome) {
-                currentIncome = WFXBusinessConfig.getConfig().getInt("DataBaseIncome." + pl.getName());
-                WFXBusinessConfig.getConfig().set("DataBaseIncome." + pl.getName(), 0);
+                currentIncome = WFXBusinessConfig.getConfig().getInt("DataBaseIncome.total-income." + pl.getName());
+                WFXBusinessConfig.getConfig().set("DataBaseIncome.total-income." + pl.getName(), 0);
                 zeroIncome = true;
             }
             else {
-                WFXBusinessConfig.getConfig().set("DataBaseIncome." + pl.getName(), currentIncome);
+                WFXBusinessConfig.getConfig().set("DataBaseIncome.total-income." + pl.getName(), currentIncome);
                 zeroIncome = false;
             }
             WFXBusinessConfig.saveConfig();
