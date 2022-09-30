@@ -1,0 +1,4 @@
+name: BlockCityTycoonEvents
+version: '${project.version}'
+main: me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents
+authors: [ Darkmun ]
