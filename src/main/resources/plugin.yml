@@ -2,3 +2,7 @@ name: BlockCityTycoonEvents
 version: '${project.version}'
 main: me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents
 authors: [ Darkmun ]
+depend: [ProtocolLib, PacketWrapper]
+commands:
+  zeroincome:
+    description: Changes chunks from the config
