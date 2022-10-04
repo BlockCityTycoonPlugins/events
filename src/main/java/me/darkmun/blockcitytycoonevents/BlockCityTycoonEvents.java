@@ -5,25 +5,13 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.*;
-import me.darkmun.blockcitytycoonevents.events.ZeroIncomeEvent;
 import me.darkmun.blockcitytycoonevents.events.ZeroIncomeEventListener;
 import net.minecraft.server.v1_12_R1.PacketPlayOutUpdateTime;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
-import org.bukkit.craftbukkit.v1_12_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.Iterator;
-import java.util.List;
 
 public final class BlockCityTycoonEvents extends JavaPlugin implements CommandExecutor, Listener {
     private static BlockCityTycoonEvents plugin;
