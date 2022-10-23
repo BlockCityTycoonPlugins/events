@@ -5,27 +5,23 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.util.UUID;
+
 public class ZeroIncomeEvent {
-    private Player pl; //поменять на UUID потом
-    private final long nightTime = 18000;
-    private final long dayTime = 6000;
-    public long timer = 0;
-    public long remainingTime = 0;
-    private Plugin WFXPlugin = Bukkit.getServer().getPluginManager().getPlugin("WFX-Business");
+    private UUID plUUID; //поменять на UUID потом
+    public static final long NIGHT_TIME = 18000;
+    public static final long DAY_TIME = 6000;
+    private final Plugin WFXPlugin = Bukkit.getServer().getPluginManager().getPlugin("WFX-Business");
     private double currentIncome;
     private boolean running = false;
-    private int eventRunTaskID;
-    private int timerTaskID;
-
-    public ZeroIncomeEvent(Player pl) {
-        this.pl = pl;
-        currentIncome = WFXPlugin.getConfig().getDouble("DataBaseIncome." + pl.getName() + ".total-income");
+    public ZeroIncomeEvent(UUID plUUID) {
+        this.plUUID = plUUID;
+        currentIncome = WFXPlugin.getConfig().getDouble("DataBaseIncome." + Bukkit.getPlayer(plUUID).getName() + ".total-income");
     }
     public void run() {
+        Player pl = Bukkit.getServer().getPlayer(plUUID);
 
-        Bukkit.getScheduler().cancelTask(timerTaskID);
-
-        BlockCityTycoonEvents.setTimeToPlayer(nightTime, pl);
+        BlockCityTycoonEvents.setTimeToPlayer(NIGHT_TIME, pl);
         running = true;
         currentIncome = WFXPlugin.getConfig().getDouble("DataBaseIncome." + pl.getName() + ".total-income");
         WFXPlugin.getConfig().set("DataBaseIncome." + pl.getName() + ".total-income", 0.0);
@@ -33,27 +29,14 @@ public class ZeroIncomeEvent {
     }
 
     public void stop() {
-        BlockCityTycoonEvents.setTimeToPlayer(dayTime, pl/*Bukkit.getServer().getPlayer(pl.getUniqueId())*/);
+        Player pl = Bukkit.getServer().getPlayer(plUUID);
+        BlockCityTycoonEvents.setTimeToPlayer(DAY_TIME, pl/*Bukkit.getServer().getPlayer(pl.getUniqueId())*/);
         running = false;
         WFXPlugin.getConfig().set("DataBaseIncome." + pl.getName() + ".total-income", currentIncome);
         WFXPlugin.saveConfig();
     }
 
-    public void cancelEventRunTask() {
-        Bukkit.getScheduler().cancelTask(eventRunTaskID);
-    }
-    public void cancelTimerTask() {
-        Bukkit.getScheduler().cancelTask(timerTaskID);
-    }
-
     public boolean isRunning() { return running; }
-    public Player getPlayer() { return  pl; }
-    public int getEventRunTaskID() { return eventRunTaskID; }
-    public int getTimerTaskID() { return timerTaskID; }
-
-    public void setPlayer(Player player) { pl = player; }
-    public void setEventRunTaskID(int taskID) { eventRunTaskID = taskID; }
-    public void setTimerTaskID(int taskID) { timerTaskID = taskID; }
 
 
 }

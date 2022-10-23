@@ -1,1 +1,5 @@
-enable-zero-income-event: false
+zero-income-event:
+  enable: true
+  time-to-next-run:  #seconds
+    min: 10
+    max: 40

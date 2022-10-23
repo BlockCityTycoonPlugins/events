@@ -15,7 +15,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class BlockCityTycoonEvents extends JavaPlugin implements CommandExecutor, Listener {
     private static BlockCityTycoonEvents plugin;
-    private boolean isRunning = false;
 
     @Override
     public void onEnable() {
@@ -24,9 +23,10 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
         plugin = this;
 
         setTime(1000);
-        enableZeroIncomeEvent(getConfig().getBoolean("enable-zero-income-event"));
+        boolean isZeroIncomeEventEnabled = getConfig().getBoolean("zero-income-event.enable");
+        enableZeroIncomeEvent(isZeroIncomeEventEnabled);
 
-        getLogger().info("Plugin enabled.");
+        //getLogger().info("Plugin enabled.");
     }
 
     @Override
@@ -48,6 +48,10 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
                 }
             });
             getServer().getPluginManager().registerEvents(new ZeroIncomeEventListener(), this);
+            getLogger().info("Zero Income Event enabled.");
+        }
+        else {
+            getLogger().info("Zero Income Event not enabled.");
         }
     }
 
