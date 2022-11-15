@@ -1,5 +1,14 @@
-zero-income-event:
+enable: true
+night-event:
   enable: true
   time-to-next-run:  #seconds
+    min: 10
+    max: 40
+economic-growth-event:
+  enable: true
+  time-to-next-run:  #seconds
+    min: 10
+    max: 40
+  time-to-end: #seconds
     min: 10
     max: 40
