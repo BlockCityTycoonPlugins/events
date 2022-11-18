@@ -21,3 +21,11 @@ gold-rush-event:
   time-to-end: #seconds
     min: 10
     max: 40
+insomnia-event:
+  enable: true
+  bed-coord:
+    x: 15
+    z: 15
+  range: 3
+  time-to-run: 20
+  time-to-stop: 20

@@ -24,7 +24,14 @@ public class BlockCityTycoonEventsListener implements Listener {
         BlockCityTycoonEvents.setTimeToPlayer(NightEvent.DAY_TIME, pl);
 
 
-        if (blockCityTycoonEventWorkers.stream().noneMatch(worker -> worker[0].getPlayerUUID().equals(pl.getUniqueId()))) {
+        if (blockCityTycoonEventWorkers.stream().noneMatch(worker -> {
+            if (worker != null) {
+                if (worker[0] != null) {
+                    return worker[0].getPlayerUUID().equals(pl.getUniqueId());
+                }
+            }
+            return false;
+        })) {
 
             BlockCityTycoonEventWorker[] workers = new BlockCityTycoonEventWorker[8];
             int i = 0;
@@ -51,12 +58,20 @@ public class BlockCityTycoonEventsListener implements Listener {
             blockCityTycoonEventWorkers.add(workers);
         }
         else {
-            BlockCityTycoonEventWorker[] BCTEWorkers = blockCityTycoonEventWorkers.stream().filter(worker ->
-                    worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
-            //BCTEWorker.continueEventsWork();
-            for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
+            BlockCityTycoonEventWorker[] BCTEWorkers = blockCityTycoonEventWorkers.stream().filter(worker -> {
                 if (worker != null) {
-                    worker.continueEventWork();
+                    if (worker[0] != null) {
+                        return worker[0].getPlayerUUID().equals(pl.getUniqueId());
+                    }
+                }
+                return false;
+            }).findAny().orElse(null);
+
+            if (BCTEWorkers != null) {
+                for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
+                    if (worker != null) {
+                        worker.continueEventWork();
+                    }
                 }
             }
         }
@@ -65,12 +80,20 @@ public class BlockCityTycoonEventsListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         Player pl = e.getPlayer();
-        BlockCityTycoonEventWorker[] BCTEWorkers = blockCityTycoonEventWorkers.stream().filter(worker ->
-                worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
-        //BCTEWorker.pauseEventWork();
-        for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
+        BlockCityTycoonEventWorker[] BCTEWorkers = blockCityTycoonEventWorkers.stream().filter(worker -> {
             if (worker != null) {
-                worker.pauseEventWork();
+                if (worker[0] != null) {
+                    return worker[0].getPlayerUUID().equals(pl.getUniqueId());
+                }
+            }
+            return false;
+        }).findAny().orElse(null);
+
+        if (BCTEWorkers != null) {
+            for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
+                if (worker != null) {
+                    worker.pauseEventWork();
+                }
             }
         }
     }

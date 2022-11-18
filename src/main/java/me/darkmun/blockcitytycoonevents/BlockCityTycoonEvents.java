@@ -8,6 +8,7 @@ import com.comphenix.protocol.events.*;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEvent;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventWorker;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener;
+import me.darkmun.blockcitytycoonevents.events.zero_income_insomnia.InsomniaEventWorker;
 import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEventStopper;
 import net.minecraft.server.v1_12_R1.PacketPlayOutUpdateTime;
 import org.bukkit.OfflinePlayer;
@@ -49,7 +50,12 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
             });
 
             getServer().getPluginManager().registerEvents(new BlockCityTycoonEventsListener(), this);
-            getServer().getPluginManager().registerEvents(new NightEventStopper(), this);
+            if (getConfig().getBoolean("night-event.enable")) {
+                getServer().getPluginManager().registerEvents(new NightEventStopper(), this);
+            }
+            if (getConfig().getBoolean("insomnia-event.enable")) {
+                getServer().getPluginManager().registerEvents(new InsomniaEventWorker(), this);
+            }
 
             getLogger().info("Plugin enabled.");
         }
@@ -61,8 +67,15 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
     @Override
     public void onDisable() {
         for (OfflinePlayer pl : getServer().getOfflinePlayers()) {
-            BlockCityTycoonEventWorker[] BCTEWorkers = BlockCityTycoonEventsListener.getBCTEventsWorker().stream().filter(worker ->
-                    worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
+            BlockCityTycoonEventWorker[] BCTEWorkers = BlockCityTycoonEventsListener.getBCTEventsWorker().stream().filter(worker -> {
+                if (worker != null) {
+                    if (worker[0] != null) {
+                        return worker[0].getPlayerUUID().equals(pl.getUniqueId());
+                    }
+                }
+                return false;
+            }).findAny().orElse(null);
+
             if (BCTEWorkers != null) {
                 for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
                     if (worker != null) {

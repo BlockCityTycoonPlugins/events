@@ -1,5 +1,6 @@
 package me.darkmun.blockcitytycoonevents.events.zero_income_night;
 
+import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventWorker;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener;
 import org.bukkit.entity.Player;
@@ -24,7 +25,7 @@ public class NightEventStopper implements Listener {
         for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
             if (worker != null) {
                 if (worker.getBCTEvent() instanceof NightEvent) {
-                    if (worker.eventIsRunning()) {
+                    if (worker.eventIsRunning() && !BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().getBoolean(pl.getUniqueId().toString() + ".insomnia-event.running")) {
                         worker.stopEventWork();
                         worker.createEventWork();
                     }

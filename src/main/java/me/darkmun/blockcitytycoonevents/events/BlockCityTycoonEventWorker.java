@@ -1,9 +1,13 @@
 package me.darkmun.blockcitytycoonevents.events;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import me.darkmun.blockcitytycoonevents.Config;
 import me.darkmun.blockcitytycoonevents.events.double_income_economic_growth.EconomicGrowthEvent;
 import me.darkmun.blockcitytycoonevents.events.gold_rush.GoldRushEvent;
+import me.darkmun.blockcitytycoonevents.events.zero_income_insomnia.InsomniaEvent;
 import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -37,6 +41,7 @@ public class BlockCityTycoonEventWorker {
     public void createEventWork() {
         //Bukkit.getLogger().info("Remaining time: " + remainingTime);
         works = true;
+
         if (BCTEvent instanceof TimeBasedEvent) {
             long minSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-next-run.min");
             long maxSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-next-run.max");
@@ -47,6 +52,11 @@ public class BlockCityTycoonEventWorker {
             }, remainingTimeToRun).getTaskId();
             timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId(); // добавлять в конфиг таймер
         }
+
+        if (BCTEvent instanceof InsomniaEvent) {
+
+        }
+
         Bukkit.getLogger().info("Remaining time to run (create): " + remainingTimeToRun);
         Bukkit.getLogger().info("Remaining time to end (create): " + remainingTimeToEnd);
         config.saveConfig();
