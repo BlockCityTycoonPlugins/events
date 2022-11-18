@@ -8,6 +8,7 @@ import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.beans.EventHandler;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -157,6 +158,11 @@ public class BlockCityTycoonEventWorker {
         Bukkit.getScheduler().cancelTask(timerTaskID);
         timer = 0;
         BCTEvent.run();
+        Player pl = Bukkit.getPlayer(getPlayerUUID());
+
+        if (pl != null) {
+            EventMessages.sendTitle(pl, BCTEvent);
+        }
 
         if (BCTEvent instanceof NightEvent) {
             if (!config.getConfig().getBoolean(getPlayerUUID() + ".economic-growth-event.running")) {
@@ -166,9 +172,6 @@ public class BlockCityTycoonEventWorker {
                 ((IncomeEvent) BCTEvent).setRealIncome(config.getConfig().getDouble(getPlayerUUID() + ".income"));
             }
         }
-
-        long minSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.min");
-        long maxSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.max");
 
         if (BCTEvent instanceof EconomicGrowthEvent) {
             if (!config.getConfig().getBoolean(getPlayerUUID() + ".night-event.running")) {
@@ -181,6 +184,9 @@ public class BlockCityTycoonEventWorker {
         }
 
         if (BCTEvent instanceof EndTimeBasedEvent) {
+            long minSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.min");
+            long maxSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.max");
+
             remainingTimeToEnd = ThreadLocalRandom.current().nextLong(minSecToEnd * TICKS_PER_SECOND, maxSecToEnd * TICKS_PER_SECOND);
             eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
                 stopEndTimeBasedEvent();
