@@ -12,3 +12,12 @@ economic-growth-event:
   time-to-end: #seconds
     min: 10
     max: 40
+gold-rush-event:
+  enable: true
+  multiplier: 3
+  time-to-next-run: #seconds
+    min: 10
+    max: 40
+  time-to-end: #seconds
+    min: 10
+    max: 40

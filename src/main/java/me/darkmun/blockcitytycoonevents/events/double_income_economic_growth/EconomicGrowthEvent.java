@@ -1,14 +1,14 @@
 package me.darkmun.blockcitytycoonevents.events.double_income_economic_growth;
 
-import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
-import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEvent;
+import me.darkmun.blockcitytycoonevents.events.EndTimeBasedEvent;
+import me.darkmun.blockcitytycoonevents.events.TimeBasedEvent;
 import me.darkmun.blockcitytycoonevents.events.IncomeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public class EconomicGrowthEvent implements BlockCityTycoonEvent, IncomeEvent {
+public class EconomicGrowthEvent implements IncomeEvent, EndTimeBasedEvent {
     private UUID plUUID;
     private double currentIncome;
     private boolean running = false;

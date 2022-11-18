@@ -18,7 +18,8 @@ public class NightEventStopper implements Listener {
 
         Player pl = e.getPlayer();
         //BlockCityTycoonEventsWorker ZIEWorker = null;
-        BlockCityTycoonEventWorker[] BCTEWorkers = Objects.requireNonNull(BlockCityTycoonEventsListener.getBCTEventsWorker().stream().filter(worker -> worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null));
+        BlockCityTycoonEventWorker[] BCTEWorkers = BlockCityTycoonEventsListener.getBCTEventsWorker().stream().filter(worker ->
+                worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
 
         for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
             if (worker != null) {

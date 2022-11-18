@@ -3,6 +3,7 @@ package me.darkmun.blockcitytycoonevents.events;
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import me.darkmun.blockcitytycoonevents.Config;
 import me.darkmun.blockcitytycoonevents.events.double_income_economic_growth.EconomicGrowthEvent;
+import me.darkmun.blockcitytycoonevents.events.gold_rush.GoldRushEvent;
 import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -11,7 +12,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEvent.BCTEconomyPlugin;
-import static me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener.*;
 import static me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener.TICKS_PER_SECOND;
 
 public class BlockCityTycoonEventWorker {
@@ -36,13 +36,13 @@ public class BlockCityTycoonEventWorker {
     public void createEventWork() {
         //Bukkit.getLogger().info("Remaining time: " + remainingTime);
         works = true;
-        if (BCTEvent instanceof IncomeEvent) {
+        if (BCTEvent instanceof TimeBasedEvent) {
             long minSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-next-run.min");
             long maxSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-next-run.max");
 
             remainingTimeToRun = ThreadLocalRandom.current().nextLong(minSec * TICKS_PER_SECOND, maxSec * TICKS_PER_SECOND);
             eventRunTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                runIncomeEvent();
+                runTimeBasedEvent();
             }, remainingTimeToRun).getTaskId();
             timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId(); // добавлять в конфиг таймер
         }
@@ -59,14 +59,14 @@ public class BlockCityTycoonEventWorker {
             Bukkit.getLogger().info("Ивент не может встать на паузу, т.к. он не собирается запускаться.");
         }
         else {
-            if (BCTEvent instanceof IncomeEvent) {
+            if (BCTEvent instanceof TimeBasedEvent) {
                 Bukkit.getScheduler().cancelTask(timerTaskID);
                 if (((remainingTimeToRun - timer) > 0) && (!BCTEvent.isRunning())) {
                     Bukkit.getScheduler().cancelTask(eventRunTaskID);
                     remainingTimeToRun -= timer;
                     timer = 0;
                 }
-                else if (((remainingTimeToEnd - timer) > 0) && BCTEvent.isRunning() && (BCTEvent instanceof EconomicGrowthEvent)) {
+                else if (((remainingTimeToEnd - timer) > 0) && BCTEvent.isRunning() && (BCTEvent instanceof EndTimeBasedEvent)) {
                     Bukkit.getScheduler().cancelTask(eventEndTaskID);
                     remainingTimeToEnd -= timer;
                     timer = 0;
@@ -85,10 +85,10 @@ public class BlockCityTycoonEventWorker {
             Bukkit.getLogger().info("Ивент не может продолжиться, т.к. он не стоит на паузе.");
         }
         else {
-            if (BCTEvent instanceof IncomeEvent) {
+            if (BCTEvent instanceof TimeBasedEvent) {
                 if(!BCTEvent.isRunning()) {
                     eventRunTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                        runIncomeEvent();
+                        runTimeBasedEvent();
                     }, remainingTimeToRun).getTaskId(); //1000 - timer
                     timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId();
 
@@ -101,9 +101,9 @@ public class BlockCityTycoonEventWorker {
                     if (BCTEvent instanceof NightEvent) {
                         BlockCityTycoonEvents.setTimeToPlayer(NightEvent.NIGHT_TIME, pl);
                     }
-                    if (BCTEvent instanceof EconomicGrowthEvent) {
+                    if (BCTEvent instanceof EndTimeBasedEvent) {
                         eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                            stopIncomeEvent();
+                            stopEndTimeBasedEvent();
                         }, remainingTimeToEnd).getTaskId();
                         timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId();
                     }
@@ -121,7 +121,7 @@ public class BlockCityTycoonEventWorker {
             Bukkit.getLogger().info("Ивент не может быть остановлен, т.к. он не собирается запускаться.");
         }
         else {
-            if (BCTEvent instanceof IncomeEvent) {
+            if (BCTEvent instanceof TimeBasedEvent) {
                 if (BCTEvent.isRunning()) {
                     BCTEvent.stop();
                     timer = 0;
@@ -130,15 +130,15 @@ public class BlockCityTycoonEventWorker {
                         if (config.getConfig().getBoolean(getPlayerUUID() + ".economic-growth-event.running")) {
                             setIncome(((IncomeEvent) BCTEvent).getRealIncome() * 2d);
                         }
-                        config.getConfig().set(getPlayerUUID() + ".night-event.running", false);
                     }
 
                     if (BCTEvent instanceof EconomicGrowthEvent) {
                         if (config.getConfig().getBoolean(getPlayerUUID() + ".night-event.running")) {
                             setIncome(0);
                         }
-                        config.getConfig().set(getPlayerUUID() + ".economic-growth-event.running", false);
                     }
+
+                    config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".running", false);
                 }
                 else {
                     Bukkit.getScheduler().cancelTask(eventRunTaskID);
@@ -153,7 +153,7 @@ public class BlockCityTycoonEventWorker {
         config.saveConfig();
     }
 
-    private void runIncomeEvent() {
+    private void runTimeBasedEvent() {
         Bukkit.getScheduler().cancelTask(timerTaskID);
         timer = 0;
         BCTEvent.run();
@@ -165,8 +165,10 @@ public class BlockCityTycoonEventWorker {
             else {
                 ((IncomeEvent) BCTEvent).setRealIncome(config.getConfig().getDouble(getPlayerUUID() + ".income"));
             }
-            config.getConfig().set(getPlayerUUID() + ".night-event.running", true);
         }
+
+        long minSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.min");
+        long maxSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.max");
 
         if (BCTEvent instanceof EconomicGrowthEvent) {
             if (!config.getConfig().getBoolean(getPlayerUUID() + ".night-event.running")) {
@@ -175,23 +177,25 @@ public class BlockCityTycoonEventWorker {
             else {
                 ((IncomeEvent) BCTEvent).setRealIncome(config.getConfig().getDouble(getPlayerUUID() + ".income"));
             }
-            config.getConfig().set(getPlayerUUID() + ".economic-growth-event.running", true);
-
-            long minSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.min");
-            long maxSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.max");
-
-            remainingTimeToEnd = ThreadLocalRandom.current().nextLong(minSec * TICKS_PER_SECOND, maxSec * TICKS_PER_SECOND);
-            eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                stopIncomeEvent();
-            }, remainingTimeToEnd).getTaskId();
-            timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId();
 
         }
+
+        if (BCTEvent instanceof EndTimeBasedEvent) {
+            remainingTimeToEnd = ThreadLocalRandom.current().nextLong(minSecToEnd * TICKS_PER_SECOND, maxSecToEnd * TICKS_PER_SECOND);
+            eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
+                stopEndTimeBasedEvent();
+            }, remainingTimeToEnd).getTaskId();
+            timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId();
+        }
+
+        config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".running", true);
+        config.saveConfig();
+
         Bukkit.getLogger().info("Remaining time to run (run): " + remainingTimeToRun);
         Bukkit.getLogger().info("Remaining time to end (run): " + remainingTimeToEnd);
     }
 
-    private void stopIncomeEvent() {
+    private void stopEndTimeBasedEvent() {
         Bukkit.getScheduler().cancelTask(timerTaskID);
         timer = 0;
         stopEventWork();

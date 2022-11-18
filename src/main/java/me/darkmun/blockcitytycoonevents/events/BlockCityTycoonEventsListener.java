@@ -2,6 +2,7 @@ package me.darkmun.blockcitytycoonevents.events;
 
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import me.darkmun.blockcitytycoonevents.events.double_income_economic_growth.EconomicGrowthEvent;
+import me.darkmun.blockcitytycoonevents.events.gold_rush.GoldRushEvent;
 import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -40,11 +41,18 @@ public class BlockCityTycoonEventsListener implements Listener {
                 workers[i] = economicGrowthEventWorker;
                 i++;
             }
+            if (BlockCityTycoonEvents.getPlugin().getConfig().getBoolean("gold-rush-event.enable")) {
+                BlockCityTycoonEventWorker goldRushEventWorker = new BlockCityTycoonEventWorker(new GoldRushEvent(pl.getUniqueId()));
+                goldRushEventWorker.createEventWork();
+                workers[i] = goldRushEventWorker;
+                i++;
+            }
 
             blockCityTycoonEventWorkers.add(workers);
         }
         else {
-            BlockCityTycoonEventWorker[] BCTEWorkers = Objects.requireNonNull(blockCityTycoonEventWorkers.stream().filter(worker -> worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null));
+            BlockCityTycoonEventWorker[] BCTEWorkers = blockCityTycoonEventWorkers.stream().filter(worker ->
+                    worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
             //BCTEWorker.continueEventsWork();
             for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
                 if (worker != null) {
@@ -57,7 +65,8 @@ public class BlockCityTycoonEventsListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         Player pl = e.getPlayer();
-        BlockCityTycoonEventWorker[] BCTEWorkers = Objects.requireNonNull(blockCityTycoonEventWorkers.stream().filter(worker -> worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null));
+        BlockCityTycoonEventWorker[] BCTEWorkers = blockCityTycoonEventWorkers.stream().filter(worker ->
+                worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
         //BCTEWorker.pauseEventWork();
         for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
             if (worker != null) {
