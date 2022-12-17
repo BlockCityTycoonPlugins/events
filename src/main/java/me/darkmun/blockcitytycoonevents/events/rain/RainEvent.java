@@ -1,42 +1,61 @@
-package me.darkmun.blockcitytycoonevents.events.zero_income_night;
+package me.darkmun.blockcitytycoonevents.events.rain;
 
-import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
-import me.darkmun.blockcitytycoonevents.events.TimeBasedEvent;
+import com.comphenix.packetwrapper.WrapperPlayServerGameStateChange;
 import me.darkmun.blockcitytycoonevents.events.IncomeEvent;
+import me.darkmun.blockcitytycoonevents.events.TimeBasedEvent;
+import net.minecraft.server.v1_12_R1.PacketPlayOutGameStateChange;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public class NightEvent implements IncomeEvent, TimeBasedEvent {
+public class RainEvent implements TimeBasedEvent, IncomeEvent {
     private UUID plUUID;
     private String plName;
     private double currentIncome;
     private boolean running = false;
-    public NightEvent(UUID plUUID, String plName) {
+
+    public RainEvent(UUID plUUID, String plName) {
         this.plUUID = plUUID;
         this.plName = plName;
-        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + Bukkit.getPlayer(plUUID).getName() + ".total-income");
+        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + plName + ".total-income");
     }
 
     @Override
     public void run() {
         Player pl = Bukkit.getServer().getPlayer(plUUID);
-
-        BlockCityTycoonEvents.setTimeToPlayer(NIGHT_TIME, pl);
+        startRain(pl);
         running = true;
         currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + plName + ".total-income");
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", 0.0);
+        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome/2d);
         BCTEconomyPlugin.saveConfig();
     }
 
     @Override
     public void stop() {
         Player pl = Bukkit.getServer().getPlayer(plUUID);
-        BlockCityTycoonEvents.setTimeToPlayer(DAY_TIME, pl);
+        stopRain(pl);
         running = false;
         BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome);
         BCTEconomyPlugin.saveConfig();
+    }
+
+    public void startRain(Player pl) {
+        if (pl != null) {
+            WrapperPlayServerGameStateChange wrapper = new WrapperPlayServerGameStateChange();
+            wrapper.setReason(2);
+            wrapper.setValue(0);
+            wrapper.sendPacket(pl);
+        }
+    }
+
+    public void stopRain(Player pl) {
+        if (pl != null) {
+            WrapperPlayServerGameStateChange wrapper = new WrapperPlayServerGameStateChange();
+            wrapper.setReason(1);
+            wrapper.setValue(0);
+            wrapper.sendPacket(pl);
+        }
     }
 
     @Override
@@ -51,7 +70,7 @@ public class NightEvent implements IncomeEvent, TimeBasedEvent {
 
     @Override
     public String getName() {
-        return "night-event";
+        return "rain-event";
     }
 
     @Override
@@ -63,5 +82,4 @@ public class NightEvent implements IncomeEvent, TimeBasedEvent {
     public void setRealIncome(double income) {
         currentIncome = income;
     }
-
 }

@@ -1,18 +1,27 @@
 package me.darkmun.blockcitytycoonevents;
 
+import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
 import com.comphenix.packetwrapper.WrapperPlayServerUpdateTime;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.*;
+import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEvent;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventWorker;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener;
+import me.darkmun.blockcitytycoonevents.events.rain.PlaceOfRitualBlock;
+import me.darkmun.blockcitytycoonevents.events.rain.RainEventStopper;
 import me.darkmun.blockcitytycoonevents.events.zero_income_insomnia.InsomniaEventWorker;
 import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEventStopper;
 import net.minecraft.server.v1_12_R1.PacketPlayOutUpdateTime;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -56,6 +65,34 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
             if (getConfig().getBoolean("insomnia-event.enable")) {
                 getServer().getPluginManager().registerEvents(new InsomniaEventWorker(), this);
             }
+            if (getConfig().getBoolean("rain-event.enable")) {
+                getServer().getPluginManager().registerEvents(new RainEventStopper(), this);
+                getCommand("blockchangee").setExecutor(this);
+                ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(this, PacketType.Play.Server.BLOCK_CHANGE) {
+                    @Override
+                    public void onPacketSending(PacketEvent event) {
+                        WrapperPlayServerBlockChange wrapper = new WrapperPlayServerBlockChange(event.getPacket());
+                        int x = wrapper.getLocation().getX();
+                        int y = wrapper.getLocation().getY();
+                        int z = wrapper.getLocation().getZ();
+                        PlaceOfRitualBlock place = RainEventStopper.getPlacesOfRitualBlocks(event.getPlayer()).stream().filter(block ->
+                            x == block.getX() && y == block.getY() && z == block.getZ()).findAny().orElse(null);
+
+                        if (place != null) {
+                            if (place.isPlacing()) {
+                                place.setPlacing(false);
+                            }
+                            else if (place.isRemoving()) {
+                                place.setRemoving(false);
+                            }
+                            else {
+                                Bukkit.getLogger().info("Block change: cancel");
+                                event.setCancelled(true);
+                            }
+                        }
+                    }
+                });
+            }
 
             getLogger().info("Plugin enabled.");
         }
@@ -79,7 +116,11 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
             if (BCTEWorkers != null) {
                 for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
                     if (worker != null) {
+                        if (worker.isPaused()) {
+                            worker.continueEventWork();
+                        }
                         worker.stopEventWork();
+                        Bukkit.getLogger().info("EVENT: " + worker.getBCTEvent().getName());
                     }
                 }
             }
@@ -90,9 +131,11 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
     public static BlockCityTycoonEvents getPlugin() { return plugin; }
 
     public static void setTimeToPlayer(long time, Player pl) {
-        CraftPlayer cp = (CraftPlayer)pl;
-        if (cp.getHandle().playerConnection != null) {
-            cp.getHandle().playerConnection.sendPacket(new PacketPlayOutUpdateTime(cp.getHandle().world.getTime(), time, false));
+        if (pl != null) {
+            CraftPlayer cp = (CraftPlayer)pl;
+            if (cp.getHandle().playerConnection != null ) {
+                cp.getHandle().playerConnection.sendPacket(new PacketPlayOutUpdateTime(cp.getHandle().world.getTime(), time, false));
+            }
         }
     }
 

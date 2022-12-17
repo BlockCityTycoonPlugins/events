@@ -3,6 +3,9 @@ package me.darkmun.blockcitytycoonevents.events.zero_income_insomnia;
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import me.darkmun.blockcitytycoonevents.events.EventMessages;
 import org.bukkit.Bukkit;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -16,10 +19,12 @@ public class InsomniaTasks {
     private boolean running = false;
     private boolean stopping = false;
     private InsomniaEvent event;
+    private BossBar bossBar;
 
     public InsomniaTasks(InsomniaEvent event) {
         //this.plUUID = event.getPlayerUUID();
         this.event = event;
+        bossBar = Bukkit.createBossBar(EventMessages.getFormattedEventName(event), BarColor.valueOf(EventMessages.getEventColor(event)), BarStyle.SOLID);
     }
 
     public void runRunningTask() {
@@ -34,6 +39,7 @@ public class InsomniaTasks {
             Player pl = Bukkit.getPlayer(getPlayerUUID());
             if (pl != null) {
                 EventMessages.sendTitle(pl, event);
+                bossBar.addPlayer(pl);
             }
 
             BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().set(getPlayerUUID().toString() + ".insomnia-event.running", true);
@@ -49,6 +55,11 @@ public class InsomniaTasks {
         stopTaskId = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
             event.stop();
             Bukkit.getLogger().info("Stopping Event");
+
+            Player pl = Bukkit.getPlayer(getPlayerUUID());
+            if (pl != null) {
+                bossBar.removePlayer(pl);
+            }
 
             BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().set(getPlayerUUID().toString() + ".insomnia-event.running", false);
             BlockCityTycoonEvents.getPlayerEventsConfig().saveConfig();

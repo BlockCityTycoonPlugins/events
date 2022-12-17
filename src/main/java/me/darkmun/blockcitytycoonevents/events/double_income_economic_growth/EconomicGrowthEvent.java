@@ -10,29 +10,27 @@ import java.util.UUID;
 
 public class EconomicGrowthEvent implements IncomeEvent, EndTimeBasedEvent {
     private UUID plUUID;
+    private String plName;
     private double currentIncome;
     private boolean running = false;
 
-    public EconomicGrowthEvent(UUID plUUID) {
+    public EconomicGrowthEvent(UUID plUUID, String plName) {
         this.plUUID = plUUID;
+        this.plName = plName;
         currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + Bukkit.getPlayer(plUUID).getName() + ".total-income");
     }
     @Override
     public void run() {
-        Player pl = Bukkit.getServer().getPlayer(plUUID);
-
         running = true;
-        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + pl.getName() + ".total-income");
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + pl.getName() + ".total-income", currentIncome * 2);
+        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + plName + ".total-income");
+        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome * 2);
         BCTEconomyPlugin.saveConfig();
     }
 
     @Override
     public void stop() {
-        Player pl = Bukkit.getServer().getPlayer(plUUID);
-
         running = false;
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + pl.getName() + ".total-income", currentIncome);
+        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome);
         BCTEconomyPlugin.saveConfig();
     }
 

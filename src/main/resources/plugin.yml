@@ -4,5 +4,5 @@ main: me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents
 authors: [ Darkmun ]
 depend: [ProtocolLib, PacketWrapper]
 commands:
-  zeroincome:
+  blockchangee:
     description: Changes chunks from the config

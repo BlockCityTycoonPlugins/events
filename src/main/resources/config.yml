@@ -29,3 +29,21 @@ insomnia-event:
   range: 3
   time-to-run: 20
   time-to-stop: 20
+rain-event:
+  enable: true
+  time-to-next-run:  #seconds
+    min: 10
+    max: 40
+  ritual-blocks-coord:
+    1:
+      x: 15
+      y: 15
+      z: 15
+    2:
+      x: 15
+      y: 15
+      z: 15
+    3:
+      x: 15
+      y: 15
+      z: 15

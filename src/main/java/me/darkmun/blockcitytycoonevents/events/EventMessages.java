@@ -2,6 +2,7 @@ package me.darkmun.blockcitytycoonevents.events;
 
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import org.bukkit.ChatColor;
+import org.bukkit.boss.BarColor;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -40,5 +41,36 @@ public class EventMessages {
         }
 
         pl.sendTitle(title, subtitle, (int) (1 * TICKS_PER_SECOND), (int) (4 * TICKS_PER_SECOND), (int) (1 * TICKS_PER_SECOND));
+    }
+
+    public static String getFormattedEventName(BlockCityTycoonEvent event) {
+        switch (event.getName()) {
+            case "night-event":
+                return "Ночь";
+            case "economic-growth-event":
+                return "Экономический рост";
+            case "gold-rush-event":
+                return "Золотая лихорадка";
+            case "insomnia-event":
+                return "Бессонница";
+            case "rain-event":
+                return "Дождь";
+            default:
+                return "Несуществующий ивент";
+        }
+    }
+
+    public static String getEventColor(BlockCityTycoonEvent event) {
+        switch (event.getName()) {
+            case "night-event":
+            case "insomnia-event":
+            case "rain-event":
+                return "RED";
+            case "economic-growth-event":
+            case "gold-rush-event":
+                return "GREEN";
+            default:
+                return "WHITE";
+        }
     }
 }
