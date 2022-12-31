@@ -59,6 +59,7 @@ public class InsomniaEventWorker implements Listener {
         InsomniaTasks insTasks;
         if (tasks.stream().noneMatch(task -> task.getPlayerUUID().equals(pl.getUniqueId()))) {
             insTasks = new InsomniaTasks(new InsomniaEvent(pl.getUniqueId()));
+
             tasks.add(insTasks);
         }
         else {

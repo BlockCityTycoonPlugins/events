@@ -4,14 +4,16 @@ import org.bukkit.Location;
 
 public class PlaceOfRitualBlock {
     private int x, y, z;
+    private String name;
     private boolean placed = false;
     private boolean placing = false;
     private boolean removing = false;
 
-    public PlaceOfRitualBlock(int x, int y, int z) {
+    public PlaceOfRitualBlock(int x, int y, int z, String name) {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.name = name;
     }
 
     public PlaceOfRitualBlock(Location loc) {
@@ -30,6 +32,10 @@ public class PlaceOfRitualBlock {
 
     public int getZ() {
         return z;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public boolean isPlaced() {

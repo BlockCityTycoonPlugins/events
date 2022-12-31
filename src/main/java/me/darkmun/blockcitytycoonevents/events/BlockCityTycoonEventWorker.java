@@ -46,22 +46,32 @@ public class BlockCityTycoonEventWorker {
         //для некоторых ивентов можно создать один бар на сервер
     }
 
-    public void createEventWork() {
+    public void createEventWork() {  // избавиться от таймера
+        long minSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-next-run.min");
+        long maxSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-next-run.max");
+        createEventWork(ThreadLocalRandom.current().nextLong(minSec * TICKS_PER_SECOND, maxSec * TICKS_PER_SECOND));
+    }
+
+    public void createEventWork(long remainingTime) {
+        createEventWork(remainingTime, -1);
+    }
+
+    public void createEventWork(long remainingTimeRun, long remainingTimeEnd) {
         //Bukkit.getLogger().info("Remaining time: " + remainingTime);
         works = true;
 
         if (BCTEvent instanceof TimeBasedEvent) {
-            long minSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-next-run.min");
-            long maxSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-next-run.max");
 
-            remainingTimeToRun = ThreadLocalRandom.current().nextLong(minSec * TICKS_PER_SECOND, maxSec * TICKS_PER_SECOND);
+            remainingTimeToRun = remainingTimeRun;
             eventRunTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                runTimeBasedEvent();
+                if (remainingTimeEnd == -1) {
+                    runTimeBasedEvent();
+                } else {
+                    runTimeBasedEvent(remainingTimeEnd);
+                }
             }, remainingTimeToRun).getTaskId();
             timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId(); // добавлять в конфиг таймер
         }
-
-
 
         Bukkit.getLogger().info("Remaining time to run (create): " + remainingTimeToRun);
         Bukkit.getLogger().info("Remaining time to end (create): " + remainingTimeToEnd);
@@ -127,7 +137,10 @@ public class BlockCityTycoonEventWorker {
                                     if (place.isPlaced()) {
                                         Bukkit.getLogger().info("Continue: placing");
                                         place.setPlacing(true);
-                                        Bukkit.getPlayer(pl.getUniqueId()).sendBlockChange(new Location(pl.getWorld(), place.getX(), place.getY(), place.getZ()), Material.AIR, (byte) 0);
+                                        Player player = Bukkit.getPlayer(pl.getUniqueId());
+                                        if (player != null) {
+                                            player.sendBlockChange(new Location(pl.getWorld(), place.getX(), place.getY(), place.getZ()), Material.AIR, (byte) 0);
+                                        }
                                     }
                                     //place.setPlaced(false);
                                 }, 20);
@@ -155,6 +168,10 @@ public class BlockCityTycoonEventWorker {
     }
 
     public void stopEventWork() {
+        stopEventWork(false);
+    }
+
+    public void stopEventWork(boolean eventIsRunning) {
         Bukkit.getLogger().info("Remaining time to run (stop): " + remainingTimeToRun);
         Bukkit.getLogger().info("Remaining time to end (stop): " + remainingTimeToEnd);
         if (!works) {
@@ -164,52 +181,25 @@ public class BlockCityTycoonEventWorker {
             if (BCTEvent instanceof TimeBasedEvent) {
                 if (BCTEvent.isRunning()) {
                     BCTEvent.stop();
-                    timer = 0;
 
                     Player pl = Bukkit.getPlayer(getPlayerUUID());
                     if (pl != null) {
                         bossBar.removePlayer(pl);
                     }
-
-                    if (BCTEvent instanceof NightEvent) {
-                        if (config.getConfig().getBoolean(getPlayerUUID() + ".economic-growth-event.running") && config.getConfig().getBoolean(getPlayerUUID() + ".rain-event.running")) {
-                            setIncome(((IncomeEvent) BCTEvent).getRealIncome());
-                        }
-                        else if (config.getConfig().getBoolean(getPlayerUUID() + ".economic-growth-event.running")) {
-                            setIncome(((IncomeEvent) BCTEvent).getRealIncome() * 2d);
-                        }
-                        else if (config.getConfig().getBoolean(getPlayerUUID() + ".rain-event.running")) {
-                            setIncome(((IncomeEvent) BCTEvent).getRealIncome() / 2d);
-                        }
+                    if (BCTEvent instanceof EndTimeBasedEvent) {
+                        config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".remaining-time-to-end", remainingTimeToEnd - timer);
                     }
 
-                    if (BCTEvent instanceof EconomicGrowthEvent) {
-                        if (config.getConfig().getBoolean(getPlayerUUID() + ".night-event.running")) {
-                            setIncome(0);
-                        }
-                        else if (config.getConfig().getBoolean(getPlayerUUID() + ".rain-event.running")) {
-                            setIncome(((IncomeEvent) BCTEvent).getRealIncome() / 2d);
-                        }
-                    }
-
-                    if (BCTEvent instanceof RainEvent) {
-                        if (config.getConfig().getBoolean(getPlayerUUID() + ".night-event.running")) {
-                            setIncome(0);
-                        }
-                        else if (config.getConfig().getBoolean(getPlayerUUID() + ".economic-growth-event.running")) {
-                            setIncome(((IncomeEvent) BCTEvent).getRealIncome() * 2d);
-                        }
-                    }
-
-                    config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".running", false);
+                    config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".running", eventIsRunning);
                 }
                 else {
                     Bukkit.getScheduler().cancelTask(eventRunTaskID);
                     Bukkit.getScheduler().cancelTask(timerTaskID);
-                    timer = 0;
+                    config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".remaining-time-to-run", remainingTimeToRun - timer);
                     remainingTimeToRun = 0;
                     remainingTimeToEnd = 0;
                 }
+                timer = 0;
             }
             works = false;
         }
@@ -217,6 +207,18 @@ public class BlockCityTycoonEventWorker {
     }
 
     private void runTimeBasedEvent() {
+        if (BCTEvent instanceof EndTimeBasedEvent) {
+            long minSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.min");
+            long maxSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.max");
+            runTimeBasedEvent(ThreadLocalRandom.current().nextLong(minSecToEnd * TICKS_PER_SECOND, maxSecToEnd * TICKS_PER_SECOND));
+        } else {
+            runTimeBasedEvent(-1);
+        }
+
+
+    }
+
+    private void runTimeBasedEvent(long remainingTime) {
         Bukkit.getScheduler().cancelTask(timerTaskID);
         timer = 0;
         BCTEvent.run();
@@ -228,38 +230,8 @@ public class BlockCityTycoonEventWorker {
             bossBar.addPlayer(pl);
         }
 
-        if (BCTEvent instanceof NightEvent) {
-            if (!config.getConfig().getBoolean(getPlayerUUID() + ".economic-growth-event.running") && !config.getConfig().getBoolean(getPlayerUUID() + ".rain-event.running")) {
-                config.getConfig().set(getPlayerUUID() + ".income", ((IncomeEvent) BCTEvent).getRealIncome());
-            }
-            else {
-                ((IncomeEvent) BCTEvent).setRealIncome(config.getConfig().getDouble(getPlayerUUID() + ".income"));
-            }
-        }
-
-        if (BCTEvent instanceof EconomicGrowthEvent) {
-            if (!config.getConfig().getBoolean(getPlayerUUID() + ".night-event.running") && !config.getConfig().getBoolean(getPlayerUUID() + ".rain-event.running")) {
-                config.getConfig().set(getPlayerUUID() + ".income", ((IncomeEvent) BCTEvent).getRealIncome());
-            }
-            else {
-                ((IncomeEvent) BCTEvent).setRealIncome(config.getConfig().getDouble(getPlayerUUID() + ".income"));
-            }
-        }
-
-        if (BCTEvent instanceof RainEvent) {
-            if (!config.getConfig().getBoolean(getPlayerUUID() + ".night-event.running") && !config.getConfig().getBoolean(getPlayerUUID() + ".economic-growth-event.running")) {
-                config.getConfig().set(getPlayerUUID() + ".income", ((IncomeEvent) BCTEvent).getRealIncome());
-            }
-            else {
-                ((IncomeEvent) BCTEvent).setRealIncome(config.getConfig().getDouble(getPlayerUUID() + ".income"));
-            }
-        }
-
         if (BCTEvent instanceof EndTimeBasedEvent) {
-            long minSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.min");
-            long maxSecToEnd = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTEvent.getName() + ".time-to-end.max");
-
-            remainingTimeToEnd = ThreadLocalRandom.current().nextLong(minSecToEnd * TICKS_PER_SECOND, maxSecToEnd * TICKS_PER_SECOND);
+            remainingTimeToEnd = remainingTime;
             currentTimeToEnd = remainingTimeToEnd;
             eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
                 stopEndTimeBasedEvent();
@@ -275,7 +247,7 @@ public class BlockCityTycoonEventWorker {
 
 
         if (BCTEvent instanceof RainEvent) {
-            if (pl != null) {
+            if (pl != null && pl.getInventory().first(Material.YELLOW_GLAZED_TERRACOTTA) == -1) {
                 ItemStack item = new ItemStack(Material.YELLOW_GLAZED_TERRACOTTA, BLOCKS_COORD.size()); //можно оптимизировать на хотя бы милисекунду мейби)
                 ItemMeta meta = item.getItemMeta();
                 meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.ITALIC + "Кусочек солнца");

@@ -17,21 +17,15 @@ public class EconomicGrowthEvent implements IncomeEvent, EndTimeBasedEvent {
     public EconomicGrowthEvent(UUID plUUID, String plName) {
         this.plUUID = plUUID;
         this.plName = plName;
-        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + Bukkit.getPlayer(plUUID).getName() + ".total-income");
     }
     @Override
     public void run() {
         running = true;
-        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + plName + ".total-income");
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome * 2);
-        BCTEconomyPlugin.saveConfig();
     }
 
     @Override
     public void stop() {
         running = false;
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome);
-        BCTEconomyPlugin.saveConfig();
     }
 
     @Override

@@ -119,7 +119,7 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
                         if (worker.isPaused()) {
                             worker.continueEventWork();
                         }
-                        worker.stopEventWork();
+                        worker.stopEventWork(true);
                         Bukkit.getLogger().info("EVENT: " + worker.getBCTEvent().getName());
                     }
                 }

@@ -18,7 +18,6 @@ public class RainEvent implements TimeBasedEvent, IncomeEvent {
     public RainEvent(UUID plUUID, String plName) {
         this.plUUID = plUUID;
         this.plName = plName;
-        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + plName + ".total-income");
     }
 
     @Override
@@ -26,9 +25,6 @@ public class RainEvent implements TimeBasedEvent, IncomeEvent {
         Player pl = Bukkit.getServer().getPlayer(plUUID);
         startRain(pl);
         running = true;
-        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + plName + ".total-income");
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome/2d);
-        BCTEconomyPlugin.saveConfig();
     }
 
     @Override
@@ -36,8 +32,6 @@ public class RainEvent implements TimeBasedEvent, IncomeEvent {
         Player pl = Bukkit.getServer().getPlayer(plUUID);
         stopRain(pl);
         running = false;
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome);
-        BCTEconomyPlugin.saveConfig();
     }
 
     public void startRain(Player pl) {

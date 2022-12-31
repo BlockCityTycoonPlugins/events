@@ -16,7 +16,6 @@ public class NightEvent implements IncomeEvent, TimeBasedEvent {
     public NightEvent(UUID plUUID, String plName) {
         this.plUUID = plUUID;
         this.plName = plName;
-        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + Bukkit.getPlayer(plUUID).getName() + ".total-income");
     }
 
     @Override
@@ -25,9 +24,6 @@ public class NightEvent implements IncomeEvent, TimeBasedEvent {
 
         BlockCityTycoonEvents.setTimeToPlayer(NIGHT_TIME, pl);
         running = true;
-        currentIncome = BCTEconomyPlugin.getConfig().getDouble("DataBaseIncome." + plName + ".total-income");
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", 0.0);
-        BCTEconomyPlugin.saveConfig();
     }
 
     @Override
@@ -35,8 +31,6 @@ public class NightEvent implements IncomeEvent, TimeBasedEvent {
         Player pl = Bukkit.getServer().getPlayer(plUUID);
         BlockCityTycoonEvents.setTimeToPlayer(DAY_TIME, pl);
         running = false;
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + plName + ".total-income", currentIncome);
-        BCTEconomyPlugin.saveConfig();
     }
 
     @Override

@@ -5,6 +5,7 @@ import me.darkmun.blockcitytycoonevents.events.double_income_economic_growth.Eco
 import me.darkmun.blockcitytycoonevents.events.gold_rush.GoldRushEvent;
 import me.darkmun.blockcitytycoonevents.events.rain.RainEvent;
 import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEvent;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,29 +38,40 @@ public class BlockCityTycoonEventsListener implements Listener {
             BlockCityTycoonEventWorker[] workers = new BlockCityTycoonEventWorker[8];
             int i = 0;
 
+            FileConfiguration config = BlockCityTycoonEvents.getPlayerEventsConfig().getConfig();
             if (BlockCityTycoonEvents.getPlugin().getConfig().getBoolean("night-event.enable")) {
                 BlockCityTycoonEventWorker nightEventWorker = new BlockCityTycoonEventWorker(new NightEvent(pl.getUniqueId(), pl.getName()));
-                nightEventWorker.createEventWork();
                 workers[i] = nightEventWorker;
                 i++;
             }
             if (BlockCityTycoonEvents.getPlugin().getConfig().getBoolean("economic-growth-event.enable")) {
                 BlockCityTycoonEventWorker economicGrowthEventWorker = new BlockCityTycoonEventWorker(new EconomicGrowthEvent(pl.getUniqueId(), pl.getName()));
-                economicGrowthEventWorker.createEventWork();
                 workers[i] = economicGrowthEventWorker;
                 i++;
             }
             if (BlockCityTycoonEvents.getPlugin().getConfig().getBoolean("gold-rush-event.enable")) {
                 BlockCityTycoonEventWorker goldRushEventWorker = new BlockCityTycoonEventWorker(new GoldRushEvent(pl.getUniqueId()));
-                goldRushEventWorker.createEventWork();
                 workers[i] = goldRushEventWorker;
                 i++;
             }
             if (BlockCityTycoonEvents.getPlugin().getConfig().getBoolean("rain-event.enable")) {
                 BlockCityTycoonEventWorker rainEventWorker = new BlockCityTycoonEventWorker(new RainEvent(pl.getUniqueId(), pl.getName()));
-                rainEventWorker.createEventWork();
                 workers[i] = rainEventWorker;
                 i++;
+            }
+
+            for (BlockCityTycoonEventWorker worker : workers) {
+                if (worker != null) {
+                    if (config.contains(String.format("%s.%s", pl.getUniqueId().toString(), worker.getBCTEvent().getName()))) {
+                        if (config.getBoolean(String.format("%s.%s.running", pl.getUniqueId().toString(), worker.getBCTEvent().getName()))) {
+                            worker.createEventWork(1, config.getLong(String.format("%s.%s.remaining-time-to-end", pl.getUniqueId().toString(), worker.getBCTEvent().getName())));
+                        } else {
+                            worker.createEventWork(config.getLong(String.format("%s.%s.remaining-time-to-run", pl.getUniqueId().toString(), worker.getBCTEvent().getName())));
+                        }
+                    } else {
+                        worker.createEventWork();
+                    }
+                }
             }
 
             blockCityTycoonEventWorkers.add(workers);

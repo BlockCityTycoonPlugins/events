@@ -43,7 +43,9 @@ public class RainEventStopper implements Listener {
                 int x = BlockCityTycoonEvents.getPlugin().getConfig().getInt("rain-event.ritual-blocks-coord." + coord + ".x");
                 int y = BlockCityTycoonEvents.getPlugin().getConfig().getInt("rain-event.ritual-blocks-coord." + coord + ".y");
                 int z = BlockCityTycoonEvents.getPlugin().getConfig().getInt("rain-event.ritual-blocks-coord." + coord + ".z");
-                blocks.add(new PlaceOfRitualBlock(x, y, z));
+                PlaceOfRitualBlock place = new PlaceOfRitualBlock(x, y, z, coord);
+                place.setPlaced(BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().getBoolean(String.format("%s.rain-event.ritual-blocks.%s.placed", pl.getUniqueId().toString(), coord)));
+                blocks.add(place);
             }
             playersRitualBlocks.put(pl.getUniqueId(), blocks);
         }
@@ -98,6 +100,7 @@ public class RainEventStopper implements Listener {
                             ritPlace.setPlacing(true);
                             pl.sendBlockChange(block.getLocation(), Material.YELLOW_GLAZED_TERRACOTTA, (byte) 0);
                             ritPlace.setPlaced(true);
+                            BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().set(String.format("%s.rain-event.ritual-blocks.%s.placed", pl.getUniqueId().toString(), ritPlace.getName()), true);
 
                             itemInMainHand.setAmount(itemInMainHand.getAmount() - 1);
 
@@ -130,6 +133,8 @@ public class RainEventStopper implements Listener {
                                         pl.sendBlockChange(new Location(pl.getWorld(), place.getX(), place.getY(), place.getZ()), Material.AIR, (byte) 0);
 
                                         place.setPlaced(false);
+                                        BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().set(String.format("%s.rain-event.ritual-blocks.%s.placed", pl.getUniqueId().toString(), place.getName()), false);
+                                        BlockCityTycoonEvents.getPlayerEventsConfig().saveConfig();
                                     }, 20);
                                 }
 
@@ -140,6 +145,7 @@ public class RainEventStopper implements Listener {
                 }
             }
         }
+        BlockCityTycoonEvents.getPlayerEventsConfig().saveConfig();
     }
 
     private void sendThunderbolt(Player pl, double x, double y, double z) {
