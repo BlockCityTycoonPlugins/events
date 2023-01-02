@@ -6,8 +6,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.*;
-import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEvent;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventWorker;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener;
@@ -16,22 +14,16 @@ import me.darkmun.blockcitytycoonevents.events.rain.RainEventStopper;
 import me.darkmun.blockcitytycoonevents.events.zero_income_insomnia.InsomniaEventWorker;
 import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEventStopper;
 import net.minecraft.server.v1_12_R1.PacketPlayOutUpdateTime;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Objects;
-
 public final class BlockCityTycoonEvents extends JavaPlugin implements CommandExecutor, Listener {
     private static BlockCityTycoonEvents plugin;
-    private static Config playerEventsConfig = new Config();
+    private static final Config playerEventsConfig = new Config();
 
     @Override
     public void onEnable() {
@@ -86,7 +78,6 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
                                 place.setRemoving(false);
                             }
                             else {
-                                Bukkit.getLogger().info("Block change: cancel");
                                 event.setCancelled(true);
                             }
                         }
@@ -120,7 +111,6 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
                             worker.continueEventWork();
                         }
                         worker.stopEventWork(true);
-                        Bukkit.getLogger().info("EVENT: " + worker.getBCTEvent().getName());
                     }
                 }
             }

@@ -13,13 +13,12 @@ import java.util.UUID;
 import static me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener.TICKS_PER_SECOND;
 
 public class InsomniaTasks {
-    //private UUID plUUID;
     private int runTaskId;
     private int stopTaskId;
     private boolean running = false;
     private boolean stopping = false;
-    private InsomniaEvent event;
-    private BossBar bossBar;
+    private final InsomniaEvent event;
+    private final BossBar bossBar;
 
     public InsomniaTasks(InsomniaEvent event) {
         //this.plUUID = event.getPlayerUUID();
@@ -28,14 +27,9 @@ public class InsomniaTasks {
     }
 
     public void runRunningTask() {
-        Bukkit.getLogger().info("Running Task");
         running = true;
-        Bukkit.getLogger().info("runTask: " + running);
         runTaskId = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
             event.run();
-            Bukkit.getLogger().info("runEvent: " + running);
-            Bukkit.getLogger().info("Running Event");
-
             Player pl = Bukkit.getPlayer(getPlayerUUID());
             if (pl != null) {
                 EventMessages.sendTitle(pl, event);
@@ -46,15 +40,12 @@ public class InsomniaTasks {
             running = false;
             BlockCityTycoonEvents.getPlayerEventsConfig().saveConfig();
         }, BlockCityTycoonEvents.getPlugin().getConfig().getLong("insomnia-event.time-to-run") * TICKS_PER_SECOND).getTaskId();
-        Bukkit.getLogger().info("runTask: " + running);
     }
 
     public void runStoppingTask() {
-        Bukkit.getLogger().info("Stopping Task");
         stopping = true;
         stopTaskId = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
             event.stop();
-            Bukkit.getLogger().info("Stopping Event");
 
             Player pl = Bukkit.getPlayer(getPlayerUUID());
             if (pl != null) {
@@ -68,36 +59,29 @@ public class InsomniaTasks {
     }
 
     public void stopStoppingTask() {
-        Bukkit.getLogger().info("Stop Stopping Task");
         Bukkit.getScheduler().cancelTask(stopTaskId);
         stopping = false;
     }
 
     public void stopRunningTask() {
-        Bukkit.getLogger().info("Stop Running Task");
         Bukkit.getScheduler().cancelTask(runTaskId);
         running = false;
     }
 
     public void pauseTasks() {
-        Bukkit.getLogger().info("pause: " + running);
         if (running) {
-            Bukkit.getLogger().info("Pausing with running");
             Bukkit.getScheduler().cancelTask(runTaskId);
         }
         else if (stopping) {
-            Bukkit.getLogger().info("Pausing with stopping");
             Bukkit.getScheduler().cancelTask(stopTaskId);
         }
     }
 
     public void continueTasks() {
         if (running) {
-            Bukkit.getLogger().info("Continuing with running");
             runRunningTask();
         }
         else if (stopping) {
-            Bukkit.getLogger().info("Continuing with stopping");
             runStoppingTask();
         }
     }
@@ -110,7 +94,7 @@ public class InsomniaTasks {
         return stopping;
     }
 
-    public void setRunTaskId(int runTaskId) {
+    /*public void setRunTaskId(int runTaskId) {
         this.runTaskId = runTaskId;
     }
 
@@ -120,7 +104,7 @@ public class InsomniaTasks {
 
     public int getStopTaskId() {
         return stopTaskId;
-    }
+    }*/
 
     public InsomniaEvent getEvent() {
         return event;

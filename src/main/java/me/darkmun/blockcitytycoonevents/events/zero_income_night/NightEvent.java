@@ -9,9 +9,8 @@ import org.bukkit.entity.Player;
 import java.util.UUID;
 
 public class NightEvent implements IncomeEvent, TimeBasedEvent {
-    private UUID plUUID;
-    private String plName;
-    private double currentIncome;
+    private final UUID plUUID;
+    private final String plName;
     private boolean running = false;
     public NightEvent(UUID plUUID, String plName) {
         this.plUUID = plUUID;
@@ -46,16 +45,6 @@ public class NightEvent implements IncomeEvent, TimeBasedEvent {
     @Override
     public String getName() {
         return "night-event";
-    }
-
-    @Override
-    public double getRealIncome() {
-        return currentIncome;
-    }
-
-    @Override
-    public void setRealIncome(double income) {
-        currentIncome = income;
     }
 
 }

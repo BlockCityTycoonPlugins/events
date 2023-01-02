@@ -15,9 +15,7 @@ import java.util.*;
 
 public class BlockCityTycoonEventsListener implements Listener {
 
-    private static Set<BlockCityTycoonEventWorker[]> blockCityTycoonEventWorkers = new HashSet<>();
-    //public static final long MIN_SEC = BlockCityTycoonEvents.getPlugin().getConfig().getLong("night-event.time-to-next-run.min");
-    //public static final long MAX_SEC = BlockCityTycoonEvents.getPlugin().getConfig().getLong("night-event.time-to-next-run.max");
+    private static final Set<BlockCityTycoonEventWorker[]> blockCityTycoonEventWorkers = new HashSet<>();
     public static final long TICKS_PER_SECOND = 20;
 
     @EventHandler

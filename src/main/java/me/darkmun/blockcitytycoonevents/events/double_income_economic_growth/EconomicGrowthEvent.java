@@ -1,17 +1,13 @@
 package me.darkmun.blockcitytycoonevents.events.double_income_economic_growth;
 
 import me.darkmun.blockcitytycoonevents.events.EndTimeBasedEvent;
-import me.darkmun.blockcitytycoonevents.events.TimeBasedEvent;
 import me.darkmun.blockcitytycoonevents.events.IncomeEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 public class EconomicGrowthEvent implements IncomeEvent, EndTimeBasedEvent {
-    private UUID plUUID;
-    private String plName;
-    private double currentIncome;
+    private final UUID plUUID;
+    private final String plName;
     private boolean running = false;
 
     public EconomicGrowthEvent(UUID plUUID, String plName) {
@@ -41,15 +37,5 @@ public class EconomicGrowthEvent implements IncomeEvent, EndTimeBasedEvent {
     @Override
     public String getName() {
         return "economic-growth-event";
-    }
-
-    @Override
-    public double getRealIncome() {
-        return currentIncome;
-    }
-
-    @Override
-    public void setRealIncome(double income) {
-        currentIncome = income;
     }
 }

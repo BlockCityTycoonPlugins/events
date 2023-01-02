@@ -2,7 +2,6 @@ package me.darkmun.blockcitytycoonevents.events;
 
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import org.bukkit.ChatColor;
-import org.bukkit.boss.BarColor;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -32,7 +31,7 @@ public class EventMessages {
                 subtitle = ChatColor.RED + "Вы не можете поспать ночью";
                 break;
             case "rain-event":
-                title = ChatColor.RED + "Дождь";
+                title = ChatColor.RED + "Снег";
                 subtitle = ChatColor.RED + "Ваш доход уменьшается в два раза";
                 break;
             default:
@@ -40,7 +39,7 @@ public class EventMessages {
                 subtitle = ChatColor.GOLD + "Ивент еще не добавлен в список тайтлов";
         }
 
-        pl.sendTitle(title, subtitle, (int) (1 * TICKS_PER_SECOND), (int) (4 * TICKS_PER_SECOND), (int) (1 * TICKS_PER_SECOND));
+        pl.sendTitle(title, subtitle, (int) (TICKS_PER_SECOND), (int) (4 * TICKS_PER_SECOND), (int) (TICKS_PER_SECOND));
     }
 
     public static String getFormattedEventName(BlockCityTycoonEvent event) {
@@ -54,7 +53,7 @@ public class EventMessages {
             case "insomnia-event":
                 return "Бессонница";
             case "rain-event":
-                return "Дождь";
+                return "Снег";
             default:
                 return "Несуществующий ивент";
         }

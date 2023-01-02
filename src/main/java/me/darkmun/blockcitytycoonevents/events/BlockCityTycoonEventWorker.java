@@ -2,7 +2,6 @@ package me.darkmun.blockcitytycoonevents.events;
 
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import me.darkmun.blockcitytycoonevents.Config;
-import me.darkmun.blockcitytycoonevents.events.double_income_economic_growth.EconomicGrowthEvent;
 import me.darkmun.blockcitytycoonevents.events.rain.PlaceOfRitualBlock;
 import me.darkmun.blockcitytycoonevents.events.rain.RainEvent;
 import me.darkmun.blockcitytycoonevents.events.rain.RainEventStopper;
@@ -21,7 +20,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEvent.BCTEconomyPlugin;
 import static me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener.TICKS_PER_SECOND;
 import static me.darkmun.blockcitytycoonevents.events.rain.RainEventStopper.BLOCKS_COORD;
 
@@ -37,9 +35,9 @@ public class BlockCityTycoonEventWorker {
     private int eventRunTaskID;
     private int eventEndTaskID;
     private int timerTaskID;
-    private BlockCityTycoonEvent BCTEvent;
-    private Config config = BlockCityTycoonEvents.getPlayerEventsConfig();
-    private BossBar bossBar;
+    private final BlockCityTycoonEvent BCTEvent;
+    private final Config playerEventsConfig = BlockCityTycoonEvents.getPlayerEventsConfig();
+    private final BossBar bossBar;
     public BlockCityTycoonEventWorker(BlockCityTycoonEvent event) {
         BCTEvent = event;
         bossBar = Bukkit.getServer().createBossBar(EventMessages.getFormattedEventName(BCTEvent), BarColor.valueOf(EventMessages.getEventColor(BCTEvent)), BarStyle.SOLID);
@@ -57,7 +55,6 @@ public class BlockCityTycoonEventWorker {
     }
 
     public void createEventWork(long remainingTimeRun, long remainingTimeEnd) {
-        //Bukkit.getLogger().info("Remaining time: " + remainingTime);
         works = true;
 
         if (BCTEvent instanceof TimeBasedEvent) {
@@ -73,15 +70,10 @@ public class BlockCityTycoonEventWorker {
             timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId(); // добавлять в конфиг таймер
         }
 
-        Bukkit.getLogger().info("Remaining time to run (create): " + remainingTimeToRun);
-        Bukkit.getLogger().info("Remaining time to end (create): " + remainingTimeToEnd);
-        config.saveConfig();
+        playerEventsConfig.saveConfig();
     }
 
     public void pauseEventWork() {
-        Bukkit.getLogger().info("Remaining time to run (pause): " + remainingTimeToRun);
-        Bukkit.getLogger().info("Remaining time to end (pause): " + remainingTimeToEnd);
-
         if (!works) {
             Bukkit.getLogger().info("Ивент не может встать на паузу, т.к. он не собирается запускаться.");
         }
@@ -103,11 +95,9 @@ public class BlockCityTycoonEventWorker {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void continueEventWork() {
-        Bukkit.getLogger().info("Remaining time to run (continue): " + remainingTimeToRun);
-        Bukkit.getLogger().info("Remaining time to end (continue): " + remainingTimeToEnd);
         Player pl = Bukkit.getServer().getPlayer(getPlayerUUID());
-
         if (!paused) {
             Bukkit.getLogger().info("Ивент не может продолжиться, т.к. он не стоит на паузе.");
         }
@@ -115,9 +105,7 @@ public class BlockCityTycoonEventWorker {
             if (pl != null) {
                 if (BCTEvent instanceof TimeBasedEvent) {
                     if(!BCTEvent.isRunning()) {
-                        eventRunTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                            runTimeBasedEvent();
-                        }, remainingTimeToRun).getTaskId(); //1000 - timer
+                        eventRunTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), this::runTimeBasedEvent, remainingTimeToRun).getTaskId(); //1000 - timer
                         timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> timer++, 0, 1).getTaskId();
 
                         if (BCTEvent instanceof NightEvent) {
@@ -135,22 +123,18 @@ public class BlockCityTycoonEventWorker {
                             for (PlaceOfRitualBlock place : RainEventStopper.getPlacesOfRitualBlocks(pl)) {
                                 Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
                                     if (place.isPlaced()) {
-                                        Bukkit.getLogger().info("Continue: placing");
                                         place.setPlacing(true);
                                         Player player = Bukkit.getPlayer(pl.getUniqueId());
                                         if (player != null) {
                                             player.sendBlockChange(new Location(pl.getWorld(), place.getX(), place.getY(), place.getZ()), Material.AIR, (byte) 0);
                                         }
                                     }
-                                    //place.setPlaced(false);
                                 }, 20);
                             }
                         }
 
                         if (BCTEvent instanceof EndTimeBasedEvent) {
-                            eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                                stopEndTimeBasedEvent();
-                            }, remainingTimeToEnd).getTaskId();
+                            eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), this::stopEndTimeBasedEvent, remainingTimeToEnd).getTaskId();
                             timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> {
                                 timer++;
                                 bossBar.setProgress(((float) currentTimeToEnd)/((float) remainingTimeToEnd));
@@ -164,7 +148,7 @@ public class BlockCityTycoonEventWorker {
                 paused = false;
             }
         }
-        config.saveConfig();
+        playerEventsConfig.saveConfig();
     }
 
     public void stopEventWork() {
@@ -172,8 +156,6 @@ public class BlockCityTycoonEventWorker {
     }
 
     public void stopEventWork(boolean eventIsRunning) {
-        Bukkit.getLogger().info("Remaining time to run (stop): " + remainingTimeToRun);
-        Bukkit.getLogger().info("Remaining time to end (stop): " + remainingTimeToEnd);
         if (!works) {
             Bukkit.getLogger().info("Ивент не может быть остановлен, т.к. он не собирается запускаться.");
         }
@@ -187,15 +169,15 @@ public class BlockCityTycoonEventWorker {
                         bossBar.removePlayer(pl);
                     }
                     if (BCTEvent instanceof EndTimeBasedEvent) {
-                        config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".remaining-time-to-end", remainingTimeToEnd - timer);
+                        playerEventsConfig.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".remaining-time-to-end", remainingTimeToEnd - timer);
                     }
 
-                    config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".running", eventIsRunning);
+                    playerEventsConfig.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".running", eventIsRunning);
                 }
                 else {
                     Bukkit.getScheduler().cancelTask(eventRunTaskID);
                     Bukkit.getScheduler().cancelTask(timerTaskID);
-                    config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".remaining-time-to-run", remainingTimeToRun - timer);
+                    playerEventsConfig.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".remaining-time-to-run", remainingTimeToRun - timer);
                     remainingTimeToRun = 0;
                     remainingTimeToEnd = 0;
                 }
@@ -203,7 +185,7 @@ public class BlockCityTycoonEventWorker {
             }
             works = false;
         }
-        config.saveConfig();
+        playerEventsConfig.saveConfig();
     }
 
     private void runTimeBasedEvent() {
@@ -224,7 +206,6 @@ public class BlockCityTycoonEventWorker {
         BCTEvent.run();
 
         Player pl = Bukkit.getPlayer(getPlayerUUID());
-        Bukkit.getLogger().info(BCTEvent.getName());
         if (pl != null) {
             EventMessages.sendTitle(pl, BCTEvent);
             bossBar.addPlayer(pl);
@@ -233,9 +214,7 @@ public class BlockCityTycoonEventWorker {
         if (BCTEvent instanceof EndTimeBasedEvent) {
             remainingTimeToEnd = remainingTime;
             currentTimeToEnd = remainingTimeToEnd;
-            eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                stopEndTimeBasedEvent();
-            }, remainingTimeToEnd).getTaskId();
+            eventEndTaskID = Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), this::stopEndTimeBasedEvent, remainingTimeToEnd).getTaskId();
             timerTaskID = Bukkit.getScheduler().runTaskTimer(BlockCityTycoonEvents.getPlugin(), () -> {
                 timer++;
                 bossBar.setProgress(((float) currentTimeToEnd)/((float) remainingTimeToEnd));
@@ -258,11 +237,8 @@ public class BlockCityTycoonEventWorker {
 
         }
 
-        config.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".running", true);
-        config.saveConfig();
-
-        Bukkit.getLogger().info("Remaining time to run (run): " + remainingTimeToRun);
-        Bukkit.getLogger().info("Remaining time to end (run): " + remainingTimeToEnd);
+        playerEventsConfig.getConfig().set(getPlayerUUID() + "." + BCTEvent.getName() + ".running", true);
+        playerEventsConfig.saveConfig();
     }
 
     private void stopEndTimeBasedEvent() {
@@ -270,13 +246,6 @@ public class BlockCityTycoonEventWorker {
         timer = 0;
         stopEventWork();
         createEventWork();
-        Bukkit.getLogger().info("Remaining time to run (stop double event): " + remainingTimeToRun);
-        Bukkit.getLogger().info("Remaining time to end (stop double event): " + remainingTimeToEnd);
-    }
-
-    private void setIncome(double income) {
-        Player pl = Bukkit.getPlayer(getPlayerUUID());
-        BCTEconomyPlugin.getConfig().set("DataBaseIncome." + pl.getName() + ".total-income", income);
     }
 
     public boolean isPaused() {

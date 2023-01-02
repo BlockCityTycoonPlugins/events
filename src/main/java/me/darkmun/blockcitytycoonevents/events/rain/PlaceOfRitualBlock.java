@@ -3,7 +3,7 @@ package me.darkmun.blockcitytycoonevents.events.rain;
 import org.bukkit.Location;
 
 public class PlaceOfRitualBlock {
-    private int x, y, z;
+    private final int x, y, z;
     private String name;
     private boolean placed = false;
     private boolean placing = false;
@@ -16,6 +16,7 @@ public class PlaceOfRitualBlock {
         this.name = name;
     }
 
+    @SuppressWarnings("unused")
     public PlaceOfRitualBlock(Location loc) {
         this.x = loc.getBlockX();
         this.y = loc.getBlockY();

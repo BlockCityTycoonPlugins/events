@@ -1,23 +1,15 @@
 package me.darkmun.blockcitytycoonevents.events.rain;
 
-import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
 import com.comphenix.packetwrapper.WrapperPlayServerSpawnEntityWeather;
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventWorker;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener;
-import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,13 +23,12 @@ import java.util.*;
 public class RainEventStopper implements Listener {
 
     public static final Set<String> BLOCKS_COORD = BlockCityTycoonEvents.getPlugin().getConfig().getConfigurationSection("rain-event.ritual-blocks-coord").getKeys(false);
-    private static Map<UUID, List<PlaceOfRitualBlock>> playersRitualBlocks = new HashMap<>();
+    private static final Map<UUID, List<PlaceOfRitualBlock>> playersRitualBlocks = new HashMap<>();
 
-    @EventHandler
+    @EventHandler @SuppressWarnings("deprecation")
     public void onJoin(PlayerJoinEvent e) {
         Player pl = e.getPlayer();
         if (playersRitualBlocks.get(pl.getUniqueId()) == null) {
-            Bukkit.getLogger().info("Have not ritual blocks");
             List<PlaceOfRitualBlock> blocks = new ArrayList<>();
             for (String coord : BLOCKS_COORD) {
                 int x = BlockCityTycoonEvents.getPlugin().getConfig().getInt("rain-event.ritual-blocks-coord." + coord + ".x");
@@ -50,28 +41,22 @@ public class RainEventStopper implements Listener {
             playersRitualBlocks.put(pl.getUniqueId(), blocks);
         }
         else if (BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().getBoolean(pl.getUniqueId().toString() + "rain-event.running")) {
-            Bukkit.getLogger().info("Sending ritual blocks on join");
             for (PlaceOfRitualBlock place : playersRitualBlocks.get(pl.getUniqueId())) {
                 if (place.isPlaced()) {
-                    Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () -> {
-                        pl.sendBlockChange(new Location(pl.getWorld(), place.getX(), place.getY(), place.getZ()), Material.YELLOW_GLAZED_TERRACOTTA, (byte) 0);
-                    }, 10);
+                    Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () ->
+                            pl.sendBlockChange(new Location(pl.getWorld(), place.getX(), place.getY(), place.getZ()), Material.YELLOW_GLAZED_TERRACOTTA, (byte) 0), 10);
                 }
             }
         }
     }
 
-    @EventHandler
+    @EventHandler @SuppressWarnings("deprecation")
     public void onPlayerInteract(PlayerInteractEvent e) {
-        Bukkit.getLogger().info("inter");
         Player pl = e.getPlayer();
         BlockCityTycoonEvents.getPlayerEventsConfig().reloadConfig();
-        Bukkit.getLogger().info(String.valueOf(BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().getBoolean(pl.getUniqueId().toString() + ".rain-event.running")));
         if (BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().getBoolean(pl.getUniqueId().toString() + ".rain-event.running")) {
-            Bukkit.getLogger().info("Interact: running");
             ItemStack itemInMainHand = pl.getInventory().getItemInMainHand();
             if (itemInMainHand.getType().equals(Material.YELLOW_GLAZED_TERRACOTTA) && (e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))) {
-                Bukkit.getLogger().info("Interact: sun in hand and right clicked");
                 List<Block> blocksInLineOfSight = pl.getLineOfSight(null, 5);
                 PlaceOfRitualBlock ritPlace = null;
                 for (org.bukkit.block.Block block : blocksInLineOfSight) {
@@ -80,23 +65,16 @@ public class RainEventStopper implements Listener {
                     int y = block.getY();
                     int z = block.getZ();
                     for (PlaceOfRitualBlock place : playersRitualBlocks.get(pl.getUniqueId())) {
-                        Bukkit.getLogger().info("ritual x: " + place.getX() + " ritual y: " + place.getY() + " ritual z: " + place.getZ());
-                        Bukkit.getLogger().info("x: " + x + " y: " + y + " z: " + z);
                         if (x == place.getX()
                                 && y == place.getY()
                                 && z == place.getZ()) {
-                            Bukkit.getLogger().info("Ritual y: " + place.getY() + " found y");
                             isRitualBlock = true;
                             ritPlace = place;
                             break;
                         }
                     }
                     if (isRitualBlock) {
-                        Bukkit.getLogger().info("Interact: it's ritual block");
-                        Bukkit.getLogger().info("x: " + x + " y: " + y + " z: " + z);
                         if (!ritPlace.isPlaced()) {
-                            Bukkit.getLogger().info("Interact: ritual block not placed");
-
                             ritPlace.setPlacing(true);
                             pl.sendBlockChange(block.getLocation(), Material.YELLOW_GLAZED_TERRACOTTA, (byte) 0);
                             ritPlace.setPlaced(true);
@@ -112,11 +90,10 @@ public class RainEventStopper implements Listener {
                                 }
                             }
                             if (allPlaced) {
-
-                                Bukkit.getLogger().info("Interact: all ritual blocks placed");
                                 BlockCityTycoonEventWorker[] BCTEWorkers = BlockCityTycoonEventsListener.getBCTEventsWorker().stream().filter(worker ->
                                         worker[0].getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
 
+                                assert BCTEWorkers != null;
                                 for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
                                     if (worker != null) {
                                         if (worker.getBCTEvent() instanceof RainEvent) {

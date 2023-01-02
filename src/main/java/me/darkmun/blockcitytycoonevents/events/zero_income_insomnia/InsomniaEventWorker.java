@@ -1,12 +1,7 @@
 package me.darkmun.blockcitytycoonevents.events.zero_income_insomnia;
 
 import me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents;
-import me.darkmun.blockcitytycoonevents.events.EventMessages;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,7 +13,7 @@ import java.util.*;
 
 public class InsomniaEventWorker implements Listener {
 
-    private Set<InsomniaTasks> tasks = new HashSet<>();
+    private final Set<InsomniaTasks> tasks = new HashSet<>();
     private final int range = BlockCityTycoonEvents.getPlugin().getConfig().getInt("insomnia-event.range");
     private final int x = BlockCityTycoonEvents.getPlugin().getConfig().getInt("insomnia-event.bed-coord.x");
     private final int z = BlockCityTycoonEvents.getPlugin().getConfig().getInt("insomnia-event.bed-coord.z");
@@ -30,6 +25,7 @@ public class InsomniaEventWorker implements Listener {
         Location newLocation = e.getTo();
 
         InsomniaTasks insTasks = tasks.stream().filter(task -> task.getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
+        assert insTasks != null;
 
         if ((newLocation.getX() <= x + range)
                 && (newLocation.getX() >= x - range)
@@ -75,9 +71,8 @@ public class InsomniaEventWorker implements Listener {
         Player pl = e.getPlayer();
 
         InsomniaTasks insTasks = tasks.stream().filter(task -> task.getPlayerUUID().equals(pl.getUniqueId())).findAny().orElse(null);
-        //if (insTasks != null) {
-            insTasks.pauseTasks();
-        //}
+        assert insTasks != null;
+        insTasks.pauseTasks();
     }
 
 }
