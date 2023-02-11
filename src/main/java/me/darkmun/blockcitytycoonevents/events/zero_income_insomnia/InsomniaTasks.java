@@ -84,6 +84,12 @@ public class InsomniaTasks {
         else if (stopping) {
             runStoppingTask();
         }
+        if (event.isRunning()) {
+            Player pl = Bukkit.getPlayer(getPlayerUUID());
+            if (pl != null) {
+                bossBar.addPlayer(pl);
+            }
+        }
     }
 
     public boolean isRunning() {

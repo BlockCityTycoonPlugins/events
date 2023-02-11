@@ -4,5 +4,7 @@ main: me.darkmun.blockcitytycoonevents.BlockCityTycoonEvents
 authors: [ Darkmun ]
 depend: [ProtocolLib, PacketWrapper]
 commands:
-  blockchangee:
-    description: Changes chunks from the config
+  event:
+    description: Запуск или остановка ивентов
+  bctevents:
+    description: Для перезагрузки конфигов

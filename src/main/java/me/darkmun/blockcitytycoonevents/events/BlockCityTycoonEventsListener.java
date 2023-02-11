@@ -23,7 +23,7 @@ public class BlockCityTycoonEventsListener implements Listener {
         Player pl = e.getPlayer();
         BlockCityTycoonEvents.setTimeToPlayer(NightEvent.DAY_TIME, pl);
 
-
+        FileConfiguration config = BlockCityTycoonEvents.getPlayerEventsConfig().getConfig();
         if (blockCityTycoonEventWorkers.stream().noneMatch(worker -> {
             if (worker != null) {
                 if (worker[0] != null) {
@@ -36,7 +36,6 @@ public class BlockCityTycoonEventsListener implements Listener {
             BlockCityTycoonEventWorker[] workers = new BlockCityTycoonEventWorker[8];
             int i = 0;
 
-            FileConfiguration config = BlockCityTycoonEvents.getPlayerEventsConfig().getConfig();
             if (BlockCityTycoonEvents.getPlugin().getConfig().getBoolean("night-event.enable")) {
                 BlockCityTycoonEventWorker nightEventWorker = new BlockCityTycoonEventWorker(new NightEvent(pl.getUniqueId(), pl.getName()));
                 workers[i] = nightEventWorker;
@@ -60,14 +59,17 @@ public class BlockCityTycoonEventsListener implements Listener {
 
             for (BlockCityTycoonEventWorker worker : workers) {
                 if (worker != null) {
-                    if (config.contains(String.format("%s.%s", pl.getUniqueId().toString(), worker.getBCTEvent().getName()))) {
-                        if (config.getBoolean(String.format("%s.%s.running", pl.getUniqueId().toString(), worker.getBCTEvent().getName()))) {
-                            worker.createEventWork(1, config.getLong(String.format("%s.%s.remaining-time-to-end", pl.getUniqueId().toString(), worker.getBCTEvent().getName())));
+                    String playerEventPath = String.format("%s.%s", pl.getUniqueId().toString(), worker.getBCTEvent().getName());
+                    if (!config.getBoolean(playerEventPath + ".disable")) {
+                        if (config.contains(playerEventPath)) {
+                            if (config.getBoolean(String.format("%s.%s.running", pl.getUniqueId().toString(), worker.getBCTEvent().getName()))) {
+                                worker.createEventWork(1, config.getLong(String.format("%s.%s.remaining-time-to-end", pl.getUniqueId().toString(), worker.getBCTEvent().getName())));
+                            } else {
+                                worker.createEventWork(config.getLong(String.format("%s.%s.remaining-time-to-run", pl.getUniqueId().toString(), worker.getBCTEvent().getName())));
+                            }
                         } else {
-                            worker.createEventWork(config.getLong(String.format("%s.%s.remaining-time-to-run", pl.getUniqueId().toString(), worker.getBCTEvent().getName())));
+                            worker.createEventWork();
                         }
-                    } else {
-                        worker.createEventWork();
                     }
                 }
             }
@@ -87,7 +89,11 @@ public class BlockCityTycoonEventsListener implements Listener {
             if (BCTEWorkers != null) {
                 for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
                     if (worker != null) {
-                        worker.continueEventWork();
+                        String playerEventPath = String.format("%s.%s", pl.getUniqueId().toString(), worker.getBCTEvent().getName());
+                        if (!config.getBoolean(playerEventPath + ".disable")) {
+                            worker.continueEventWork();
+                            worker.setOfflineWork(false);
+                        }
                     }
                 }
             }
@@ -97,6 +103,8 @@ public class BlockCityTycoonEventsListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         Player pl = e.getPlayer();
+        FileConfiguration config = BlockCityTycoonEvents.getPlayerEventsConfig().getConfig();
+
         BlockCityTycoonEventWorker[] BCTEWorkers = blockCityTycoonEventWorkers.stream().filter(worker -> {
             if (worker != null) {
                 if (worker[0] != null) {
@@ -109,7 +117,10 @@ public class BlockCityTycoonEventsListener implements Listener {
         if (BCTEWorkers != null) {
             for (BlockCityTycoonEventWorker worker : BCTEWorkers) {
                 if (worker != null) {
-                    worker.pauseEventWork();
+                    String playerEventPath = String.format("%s.%s", pl.getUniqueId().toString(), worker.getBCTEvent().getName());
+                    if (!config.getBoolean(playerEventPath + ".disable")) {
+                        worker.pauseEventWork();
+                    }
                 }
             }
         }

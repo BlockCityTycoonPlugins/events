@@ -10,7 +10,6 @@ import org.bukkit.event.player.PlayerBedEnterEvent;
 
 public class NightEventStopper implements Listener {
 
-
     @EventHandler
     public void onBed(PlayerBedEnterEvent e) {
         e.setCancelled(true);
@@ -30,7 +29,5 @@ public class NightEventStopper implements Listener {
                 }
             }
         }
-
-
     }
 }

@@ -6,9 +6,11 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.*;
+import me.darkmun.blockcitytycoonevents.commands.ReloadCommand;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEvent;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventWorker;
 import me.darkmun.blockcitytycoonevents.events.BlockCityTycoonEventsListener;
+import me.darkmun.blockcitytycoonevents.events.donate.EventsWorkCommand;
 import me.darkmun.blockcitytycoonevents.events.rain.PlaceOfRitualBlock;
 import me.darkmun.blockcitytycoonevents.events.rain.RainEventStopper;
 import me.darkmun.blockcitytycoonevents.events.zero_income_insomnia.InsomniaEventWorker;
@@ -20,6 +22,8 @@ import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Set;
 
 public final class BlockCityTycoonEvents extends JavaPlugin implements CommandExecutor, Listener {
     private static BlockCityTycoonEvents plugin;
@@ -59,7 +63,6 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
             }
             if (getConfig().getBoolean("rain-event.enable")) {
                 getServer().getPluginManager().registerEvents(new RainEventStopper(), this);
-                getCommand("blockchangee").setExecutor(this);
                 ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(this, PacketType.Play.Server.BLOCK_CHANGE) {
                     @Override
                     public void onPacketSending(PacketEvent event) {
@@ -84,6 +87,9 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
                     }
                 });
             }
+
+            getCommand("event").setExecutor(new EventsWorkCommand());
+            getCommand("bctevents").setExecutor(new ReloadCommand());
 
             getLogger().info("Plugin enabled.");
         }
@@ -115,6 +121,12 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
                 }
             }
         }
+
+        Set<String> uuids = playerEventsConfig.getConfig().getKeys(false);
+        for (String uuid : uuids) {
+            playerEventsConfig.getConfig().set(uuid + ".insomnia-event.running", false);
+        }
+        playerEventsConfig.saveConfig();
         getLogger().info("Plugin disabled.");
     }
 

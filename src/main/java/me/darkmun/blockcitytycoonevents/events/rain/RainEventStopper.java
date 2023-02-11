@@ -25,7 +25,7 @@ public class RainEventStopper implements Listener {
     public static final Set<String> BLOCKS_COORD = BlockCityTycoonEvents.getPlugin().getConfig().getConfigurationSection("rain-event.ritual-blocks-coord").getKeys(false);
     private static final Map<UUID, List<PlaceOfRitualBlock>> playersRitualBlocks = new HashMap<>();
 
-    @EventHandler @SuppressWarnings("deprecation")
+    @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player pl = e.getPlayer();
         if (playersRitualBlocks.get(pl.getUniqueId()) == null) {
@@ -39,14 +39,6 @@ public class RainEventStopper implements Listener {
                 blocks.add(place);
             }
             playersRitualBlocks.put(pl.getUniqueId(), blocks);
-        }
-        else if (BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().getBoolean(pl.getUniqueId().toString() + "rain-event.running")) {
-            for (PlaceOfRitualBlock place : playersRitualBlocks.get(pl.getUniqueId())) {
-                if (place.isPlaced()) {
-                    Bukkit.getScheduler().runTaskLater(BlockCityTycoonEvents.getPlugin(), () ->
-                            pl.sendBlockChange(new Location(pl.getWorld(), place.getX(), place.getY(), place.getZ()), Material.YELLOW_GLAZED_TERRACOTTA, (byte) 0), 10);
-                }
-            }
         }
     }
 
