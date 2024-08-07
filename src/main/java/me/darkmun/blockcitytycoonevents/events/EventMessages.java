@@ -31,7 +31,7 @@ public class EventMessages {
                 subtitle = ChatColor.RED + "Вы не можете поспать ночью";
                 break;
             case "rain-event":
-                title = ChatColor.RED + "Снег";
+                title = ChatColor.RED + "Дождь";
                 subtitle = ChatColor.RED + "Ваш доход уменьшается в два раза";
                 break;
             default:
@@ -53,7 +53,7 @@ public class EventMessages {
             case "insomnia-event":
                 return "Бессонница";
             case "rain-event":
-                return "Снег";
+                return "Дождь";
             default:
                 return "Несуществующий ивент";
         }

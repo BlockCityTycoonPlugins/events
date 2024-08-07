@@ -106,7 +106,7 @@ public class RainEventStopper implements Listener {
                                         BlockCityTycoonEvents.getPlayerEventsConfig().saveConfig();
                                     }, 20);
                                 }
-
+                                pl.getInventory().remove(Material.YELLOW_GLAZED_TERRACOTTA);
                                 sendThunderbolt(pl, ritPlace.getX(), ritPlace.getY(), ritPlace.getZ());
                             }
                         }

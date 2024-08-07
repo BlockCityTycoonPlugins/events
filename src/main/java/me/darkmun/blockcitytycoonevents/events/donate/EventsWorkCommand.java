@@ -25,7 +25,7 @@ public class EventsWorkCommand implements CommandExecutor {
         } else if (args.length == 3) {
             OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(args[2]);
 
-            if (!offPlayer.hasPlayedBefore()) {
+            if (!(offPlayer.hasPlayedBefore() || offPlayer.isOnline())) {
                 sender.sendMessage(ChatColor.RED + "Игрок с ником " + args[2] + " никогда не заходил на сервер");
                 sendUsage(sender);
             } else {
@@ -60,15 +60,16 @@ public class EventsWorkCommand implements CommandExecutor {
                 } else if (args[1].equals("pause")) {
                     if (!offPlayer.isOnline())
                         BCTworker.setOfflineWork(true);
-                    BCTworker.stopEventWork();
+                    BCTworker.stopEventWork(); //TODO: Солнечный регион выдается до следующей перезагрузки сервера, а не навсегда
                     BlockCityTycoonEvents.getPlayerEventsConfig().getConfig().set(offPlayer.getUniqueId() + ".rain-event.disable", true);
                     BlockCityTycoonEvents.getPlayerEventsConfig().saveConfig();
+                    BlockCityTycoonEvents.getPlugin().getDonateLogger().info("Донат \"Солнечный регион\" выдан игроку " + offPlayer.getName() + " навсегда");
                 }
             }
         } else if (args.length == 4) {
             OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(args[3]);
 
-            if (!offPlayer.hasPlayedBefore()) {
+            if (!(offPlayer.hasPlayedBefore() || offPlayer.isOnline())) {
                 sender.sendMessage(ChatColor.RED + "Игрок с ником " + args[3] + " никогда не заходил на сервер");
                 sendUsage(sender);
             } else {
@@ -95,8 +96,9 @@ public class EventsWorkCommand implements CommandExecutor {
                 } else {
                     try {
                         long time = Long.parseLong(args[2]);
-                        if (BCTworker.getBCTEvent().getName().equals("economic-growth-event")
-                                || BCTworker.getBCTEvent().getName().equals("gold-rush-event")) {
+                        String eventName = BCTworker.getBCTEvent().getName();
+                        if (eventName.equals("economic-growth-event")
+                                || eventName.equals("gold-rush-event")) {
                             if (!args[1].equals("start") && !args[1].equals("pause")) {
                                 sender.sendMessage(ChatColor.RED + "Некорректно введен второй аргумент");
                                 sendUsage(sender);
@@ -109,6 +111,11 @@ public class EventsWorkCommand implements CommandExecutor {
                                     BCTworker.stopEventWork();
                                 }
                                 BCTworker.createEventWork(1, time * TICKS_PER_SECOND);
+                                if (eventName.equals("economic-growth-event")) {
+                                    BlockCityTycoonEvents.getPlugin().getDonateLogger().info("Донат \"Экономический рост\" выдан игроку " + offPlayer.getName() + " на " + time/60d + " минут");
+                                } else {
+                                    BlockCityTycoonEvents.getPlugin().getDonateLogger().info("Донат \"Золотая лихорадка\" выдан игроку " + offPlayer.getName() + " на " + time/60d + " минут");
+                                }
                             } else if (!BCTworker.eventIsRunning()) {
                                 sender.sendMessage(ChatColor.RED + "Вы не можете поставить на паузу ивент, так как он не запущен");
                                 sendUsage(sender);
@@ -132,6 +139,7 @@ public class EventsWorkCommand implements CommandExecutor {
                                 long minSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTworker.getBCTEvent().getName() + ".time-to-next-run.min");
                                 long maxSec = BlockCityTycoonEvents.getPlugin().getConfig().getLong(BCTworker.getBCTEvent().getName() + ".time-to-next-run.max");
                                 BCTworker.createEventWork(time * TICKS_PER_SECOND + ThreadLocalRandom.current().nextLong(minSec * TICKS_PER_SECOND, maxSec * TICKS_PER_SECOND));
+                                BlockCityTycoonEvents.getPlugin().getDonateLogger().info("Донат \"Солнечный регион\" выдан игроку " + offPlayer.getName() + " на " + time/60d + " минут");
                             }
                         }
                     } catch (NumberFormatException ex) {

@@ -18,15 +18,22 @@ import me.darkmun.blockcitytycoonevents.events.zero_income_night.NightEventStopp
 import net.minecraft.server.v1_12_R1.PacketPlayOutUpdateTime;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.craftbukkit.v1_12_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_12_R1.util.ShortConsoleLogFormatter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.PluginLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Set;
+import java.util.logging.FileHandler;
 
 public final class BlockCityTycoonEvents extends JavaPlugin implements CommandExecutor, Listener {
     private static BlockCityTycoonEvents plugin;
+    private final PluginLogger donateLogger = new PluginLogger(this);
     private static final Config playerEventsConfig = new Config();
 
     @Override
@@ -42,6 +49,19 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
         setTime(1000);
 
         if (getConfig().getBoolean("enable")) {
+
+            donateLogger.setUseParentHandlers(false);
+            try {
+                File file = new File(getDataFolder().getPath() + "/logs");
+                @SuppressWarnings("unused")
+                boolean created = file.mkdirs();
+                FileHandler fileHandler = new FileHandler(getDataFolder().getPath() + "/logs/donate%g.log", 524288, 50, true);
+                fileHandler.setFormatter(new ShortConsoleLogFormatter(((CraftServer) getServer()).getServer()));
+                donateLogger.addHandler(fileHandler);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             setTime(19000);
             ProtocolManager manager = ProtocolLibrary.getProtocolManager();
             manager.addPacketListener(new PacketAdapter(this, PacketType.Play.Server.UPDATE_TIME) {
@@ -143,6 +163,9 @@ public final class BlockCityTycoonEvents extends JavaPlugin implements CommandEx
 
     public static void setTime(long time) {
         getPlugin().getServer().getWorld("world").setTime(time);
+    }
+    public PluginLogger getDonateLogger() {
+        return donateLogger;
     }
 
     public static Config getPlayerEventsConfig() {
